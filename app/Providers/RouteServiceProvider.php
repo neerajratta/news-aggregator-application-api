@@ -45,8 +45,26 @@ class RouteServiceProvider extends ServiceProvider
      */
     protected function configureRateLimiting()
     {
+        // Default API rate limit - 60 requests per minute for general endpoints
         RateLimiter::for('api', function (Request $request) {
             return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
+        });
+        
+        // Public endpoints rate limit - more restricted for anonymous users
+        RateLimiter::for('api.public', function (Request $request) {
+            return Limit::perMinute(30)->by($request->ip());
+        });
+        
+        // User feed/preferences endpoints - higher limit for authenticated users
+        RateLimiter::for('api.user', function (Request $request) {
+            return $request->user()
+                ? Limit::perMinute(120)->by($request->user()->id)
+                : Limit::perMinute(10)->by($request->ip()); // Lower limit for unauthenticated requests
+        });
+        
+        // Articles endpoint specific rate limit
+        RateLimiter::for('api.articles', function (Request $request) {
+            return Limit::perMinute(40)->by($request->user()?->id ?: $request->ip());
         });
     }
 }

@@ -3,16 +3,27 @@
     "info": {
         "title": "News Aggregator API",
         "description": "API documentation for the News Aggregator application.",
+        "contact": {
+            "name": "News Aggregator API Support",
+            "email": "admin@newsaggregator.com"
+        },
         "version": "1.0.0"
     },
+    "servers": [
+        {
+            "url": "/",
+            "description": "API Server"
+        }
+    ],
     "paths": {
-        "/api/articles": {
+        "/api/v1/articles": {
             "get": {
                 "tags": [
                     "Articles"
                 ],
                 "summary": "Get list of articles with filters",
-                "operationId": "7e370449b00151b6422003b99ee09b88",
+                "description": "Retrieve a paginated list of news articles with optional filtering capabilities",
+                "operationId": "getArticles",
                 "parameters": [
                     {
                         "name": "keyword",
@@ -21,7 +32,8 @@
                         "required": false,
                         "schema": {
                             "type": "string"
-                        }
+                        },
+                        "example": "climate"
                     },
                     {
                         "name": "category",
@@ -30,7 +42,8 @@
                         "required": false,
                         "schema": {
                             "type": "string"
-                        }
+                        },
+                        "example": "politics"
                     },
                     {
                         "name": "source",
@@ -39,7 +52,8 @@
                         "required": false,
                         "schema": {
                             "type": "string"
-                        }
+                        },
+                        "example": "bbc-news"
                     },
                     {
                         "name": "date",
@@ -49,7 +63,18 @@
                         "schema": {
                             "type": "string",
                             "format": "date"
-                        }
+                        },
+                        "example": "2025-06-08"
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number for pagination",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "example": 1
                     }
                 ],
                 "responses": {
@@ -64,6 +89,12 @@
                                             "items": {
                                                 "$ref": "#/components/schemas/Article"
                                             }
+                                        },
+                                        "links": {
+                                            "type": "object"
+                                        },
+                                        "meta": {
+                                            "type": "object"
                                         }
                                     },
                                     "type": "object"
@@ -74,13 +105,13 @@
                 }
             }
         },
-        "/api/articles/{id}": {
+        "/api/v1/articles/{id}": {
             "get": {
                 "tags": [
                     "Articles"
                 ],
                 "summary": "Get a single article by ID",
-                "operationId": "64e4fccf59ff45a0babae2b1c80bff4b",
+                "operationId": "7e823e5f54ca3e50d7d636a8f171090b",
                 "parameters": [
                     {
                         "name": "id",
@@ -109,152 +140,13 @@
                 }
             }
         },
-        "/api/user/preferences": {
-            "get": {
-                "tags": [
-                    "User Preferences"
-                ],
-                "summary": "Get the logged-in user's preferences",
-                "operationId": "157d1a780589b6d1b996b09b8838e0bc",
-                "responses": {
-                    "200": {
-                        "description": "User preferences returned",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "sources": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "string"
-                                            }
-                                        },
-                                        "categories": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "string"
-                                            }
-                                        },
-                                        "authors": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "string"
-                                            }
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            },
-            "post": {
-                "tags": [
-                    "User Preferences"
-                ],
-                "summary": "Set or update user preferences",
-                "operationId": "15fd08637cf7dbcb9939a6c16b557613",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "properties": {
-                                    "sources": {
-                                        "type": "array",
-                                        "items": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "categories": {
-                                        "type": "array",
-                                        "items": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "authors": {
-                                        "type": "array",
-                                        "items": {
-                                            "type": "string"
-                                        }
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Preferences saved",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            }
-        },
-        "/api/user/feed": {
-            "get": {
-                "tags": [
-                    "User Preferences"
-                ],
-                "summary": "Get personalized news feed based on user preferences",
-                "operationId": "cf0e9603e76da0d39fce2d2ff8ff8e9b",
-                "responses": {
-                    "200": {
-                        "description": "List of personalized articles",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/Article"
-                                            }
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            }
-        },
-        "api/v1/user/register": {
+        "/api/v1/user/register": {
             "post": {
                 "tags": [
                     "Authentication"
                 ],
                 "summary": "Register a new user",
-                "operationId": "d8b21a3fe1fbdf87783103ae959fb6ce",
+                "operationId": "9c2e106b3a766f2955ec19da8d385265",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -316,13 +208,13 @@
                 }
             }
         },
-        "api/v1/user/login": {
+        "/api/v1/user/login": {
             "post": {
                 "tags": [
                     "Authentication"
                 ],
                 "summary": "Authenticate a user",
-                "operationId": "8eaea97fdf6f68a0d97ca9b6e8ca505c",
+                "operationId": "3516ee8e5292d03dccf65eadaf6cd1f3",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -374,13 +266,13 @@
                 }
             }
         },
-        "api/v1/user/forgot-password": {
+        "/api/v1/user/forgot-password": {
             "post": {
                 "tags": [
                     "Authentication"
                 ],
                 "summary": "Send password reset token",
-                "operationId": "6b18c37be9fa9069877b57858f28745e",
+                "operationId": "326ba42bb9f135b4c06c361979b02814",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -435,13 +327,13 @@
                 }
             }
         },
-        "api/v1/user/reset-password": {
+        "/api/v1/user/reset-password": {
             "post": {
                 "tags": [
                     "Authentication"
                 ],
                 "summary": "Reset user password",
-                "operationId": "36916593545ea97f0d3103576203f4a1",
+                "operationId": "7767a45b8706b9bc97c475e82ccdd408",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -505,13 +397,13 @@
                 }
             }
         },
-        "api/logout": {
+        "/api/v1/logout": {
             "post": {
                 "tags": [
                     "Authentication"
                 ],
                 "summary": "Logout a user",
-                "operationId": "5cdfa55259dc1bf3f992242c655088ee",
+                "operationId": "734ba9bbf120e279bea89fa1b5301620",
                 "responses": {
                     "200": {
                         "description": "User logged out successfully",
@@ -522,6 +414,331 @@
                                         "message": {
                                             "type": "string",
                                             "example": "User logged out successfully"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/user/preferences": {
+            "get": {
+                "tags": [
+                    "User Preferences"
+                ],
+                "summary": "Get user preferences",
+                "operationId": "852282c847586808ce870da7a8c58815",
+                "responses": {
+                    "200": {
+                        "description": "User preferences retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "sources": {
+                                            "description": "List of preferred news sources",
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            },
+                                            "example": [
+                                                "CNN",
+                                                "BBC",
+                                                "The New York Times"
+                                            ]
+                                        },
+                                        "categories": {
+                                            "description": "List of preferred news categories",
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            },
+                                            "example": [
+                                                "Politics",
+                                                "Technology",
+                                                "Health"
+                                            ]
+                                        },
+                                        "authors": {
+                                            "description": "List of preferred authors to follow",
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            },
+                                            "example": [
+                                                "John Smith",
+                                                "Jane Doe"
+                                            ]
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "404": {
+                        "description": "Preferences not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/user/preferences/update": {
+            "put": {
+                "tags": [
+                    "User Preferences"
+                ],
+                "summary": "Update user preferences",
+                "operationId": "125ef91cf7928b3a4a5f93589e7c494c",
+                "requestBody": {
+                    "description": "User preference data",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "sources",
+                                    "categories",
+                                    "authors"
+                                ],
+                                "properties": {
+                                    "sources": {
+                                        "description": "List of preferred news sources",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        },
+                                        "example": [
+                                            "CNN",
+                                            "BBC",
+                                            "The New York Times"
+                                        ]
+                                    },
+                                    "categories": {
+                                        "description": "List of preferred news categories",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        },
+                                        "example": [
+                                            "Politics",
+                                            "Technology",
+                                            "Health"
+                                        ]
+                                    },
+                                    "authors": {
+                                        "description": "List of preferred authors to follow",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        },
+                                        "example": [
+                                            "John Smith",
+                                            "Jane Doe"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "User preferences updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Preferences updated successfully"
+                                        },
+                                        "preferences": {
+                                            "properties": {
+                                                "sources": {
+                                                    "description": "List of preferred news sources",
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    },
+                                                    "example": [
+                                                        "CNN",
+                                                        "BBC",
+                                                        "The New York Times"
+                                                    ]
+                                                },
+                                                "categories": {
+                                                    "description": "List of preferred news categories",
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    },
+                                                    "example": [
+                                                        "Politics",
+                                                        "Technology",
+                                                        "Health"
+                                                    ]
+                                                },
+                                                "authors": {
+                                                    "description": "List of preferred authors to follow",
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    },
+                                                    "example": [
+                                                        "John Smith",
+                                                        "Jane Doe"
+                                                    ]
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/user/preferences/reset": {
+            "post": {
+                "tags": [
+                    "User Preferences"
+                ],
+                "summary": "Reset user preferences to default",
+                "operationId": "0138575e7c0a515e4fb7e6a6d10deeb7",
+                "responses": {
+                    "200": {
+                        "description": "User preferences reset successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Preferences reset successfully"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/user/feed": {
+            "get": {
+                "tags": [
+                    "User Feed"
+                ],
+                "summary": "Get personalized news feed based on user preferences",
+                "operationId": "a26a81808f8fb281fa04c28fe4d51f95",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Items per page",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 15
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Personalized articles retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "articles": {
+                                            "description": "List of personalized articles based on preferences",
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Article"
+                                            }
+                                        },
+                                        "pagination": {
+                                            "description": "Pagination information",
+                                            "properties": {
+                                                "total": {
+                                                    "type": "integer",
+                                                    "example": 45
+                                                },
+                                                "per_page": {
+                                                    "type": "integer",
+                                                    "example": 15
+                                                },
+                                                "current_page": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "last_page": {
+                                                    "type": "integer",
+                                                    "example": 3
+                                                },
+                                                "from": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "to": {
+                                                    "type": "integer",
+                                                    "example": 15
+                                                }
+                                            },
+                                            "type": "object"
                                         }
                                     },
                                     "type": "object"
@@ -585,21 +802,105 @@
                     }
                 },
                 "type": "object"
+            },
+            "User": {
+                "title": "User",
+                "description": "User account information",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email"
+                    },
+                    "email_verified_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "UserPreference": {
+                "title": "UserPreference",
+                "description": "User news preferences",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "user_id": {
+                        "type": "integer"
+                    },
+                    "sources": {
+                        "description": "List of preferred news sources",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "categories": {
+                        "description": "List of preferred news categories",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "authors": {
+                        "description": "List of preferred news authors",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            }
+        },
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "description": "Enter your bearer token in the format **Bearer {token}**",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
             }
         }
     },
     "tags": [
         {
             "name": "Articles",
-            "description": "API Endpoints for Managing News Articles"
-        },
-        {
-            "name": "User Preferences",
-            "description": "Manage user’s news preferences"
+            "description": "API endpoints for retrieving news articles"
         },
         {
             "name": "Authentication",
-            "description": "Authentication"
+            "description": "API endpoints for user authentication"
+        },
+        {
+            "name": "User Preferences",
+            "description": "API endpoints for managing user preferences"
+        },
+        {
+            "name": "User Feed",
+            "description": "API endpoints for retrieving personalized news feed"
         }
     ]
 }

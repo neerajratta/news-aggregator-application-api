@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\API;
 
+use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -15,7 +16,7 @@ class AuthController extends Controller
 {
     /**
      * @OA\Post(
-     *     path="api/v1/user/register",
+     *     path="/api/v1/user/register",
      *     summary="Register a new user",
      *     tags={"Authentication"},
      *     @OA\RequestBody(
@@ -63,7 +64,7 @@ class AuthController extends Controller
 
     /**
      * @OA\Post(
-     *     path="api/v1/user/login",
+     *     path="/api/v1/user/login",
      *     summary="Authenticate a user",
      *     tags={"Authentication"},
      *     @OA\RequestBody(
@@ -112,7 +113,7 @@ class AuthController extends Controller
 
     /**
      * @OA\Post(
-     *     path="api/v1/user/forgot-password",
+     *     path="/api/v1/user/forgot-password",
      *     summary="Send password reset token",
      *     tags={"Authentication"},
      *     @OA\RequestBody(
@@ -189,7 +190,7 @@ class AuthController extends Controller
     
     /**
      * @OA\Post(
-     *     path="api/v1/user/reset-password",
+     *     path="/api/v1/user/reset-password",
      *     summary="Reset user password",
      *     tags={"Authentication"},
      *     @OA\RequestBody(
@@ -284,7 +285,7 @@ class AuthController extends Controller
 
     /**
      * @OA\Post(
-     *     path="api/logout",
+     *     path="/api/v1/logout",
      *     summary="Logout a user",
      *     tags={"Authentication"},
      *     security={

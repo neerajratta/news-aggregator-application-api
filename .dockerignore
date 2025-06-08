@@ -1,0 +1,45 @@
+# Git
+.git
+.gitignore
+.github
+
+# Docker
+.docker
+docker-compose.yml
+Dockerfile
+.dockerignore
+
+# IDE files
+.idea
+.vscode
+*.sublime-project
+*.sublime-workspace
+
+# Node.js dependencies
+/node_modules
+npm-debug.log
+yarn-error.log
+
+# Laravel specific
+/vendor
+.env
+.env.backup
+.env.example
+.env.testing
+.phpunit.result.cache
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+storage/logs/*
+bootstrap/cache/*
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Project specific
+README.md
+CHANGELOG.md
+.editorconfig
+phpunit.xml
+tests

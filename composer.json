@@ -47,6 +47,17 @@
         ],
         "post-create-project-cmd": [
             "@php artisan key:generate --ansi"
+        ],
+        "docker-setup": [
+            "@composer install",
+            "@php artisan key:generate",
+            "@php artisan migrate",
+            "@php artisan db:seed",
+            "@php artisan l5-swagger:generate"
+        ],
+        "docker-refresh": [
+            "@php artisan migrate:fresh",
+            "@php artisan db:seed"
         ]
     },
     "extra": {

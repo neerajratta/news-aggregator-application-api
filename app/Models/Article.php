@@ -25,6 +25,8 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Article extends Model
 {
+    use HasFactory;
+    
     protected $fillable = [
         'title', 'description', 'content', 'author',
         'source', 'category', 'url', 'url_to_image', 'published_at'

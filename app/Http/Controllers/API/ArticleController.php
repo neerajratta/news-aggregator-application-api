@@ -17,43 +17,67 @@ class ArticleController extends Controller
 {
     /**
      * @OA\Get(
-     *     path="/api/articles",
+     *     path="/api/v1/articles",
      *     tags={"Articles"},
      *     summary="Get list of articles with filters",
+     *     description="Retrieve a paginated list of news articles with optional filtering capabilities",
+     *     operationId="getArticles",
      *     @OA\Parameter(
      *         name="keyword",
      *         in="query",
      *         description="Search by keyword in title/description",
      *         required=false,
-     *         @OA\Schema(type="string")
+     *         @OA\Schema(type="string"),
+     *         example="climate"
      *     ),
      *     @OA\Parameter(
      *         name="category",
      *         in="query",
-     *         description="Filter by category",
+     *         description="Filter by category (use 'null' to find articles with no category)",
      *         required=false,
-     *         @OA\Schema(type="string")
+     *         @OA\Schema(type="string"),
+     *         example="politics"
      *     ),
      *     @OA\Parameter(
      *         name="source",
      *         in="query",
-     *         description="Filter by news source",
+     *         description="Filter by news source (use 'null' to find articles with no source)",
      *         required=false,
-     *         @OA\Schema(type="string")
+     *         @OA\Schema(type="string"),
+     *         example="bbc-news"
+     *     ),
+     *     @OA\Parameter(
+     *         name="author",
+     *         in="query",
+     *         description="Filter by author (use 'null' to find articles with no author)",
+     *         required=false,
+     *         @OA\Schema(type="string"),
+     *         example="John Doe"
      *     ),
      *     @OA\Parameter(
      *         name="date",
      *         in="query",
      *         description="Filter by published date (YYYY-MM-DD)",
      *         required=false,
-     *         @OA\Schema(type="string", format="date")
+     *         @OA\Schema(type="string", format="date"),
+     *         example="2025-06-08"
+     *     ),
+     *     @OA\Parameter(
+     *         name="page",
+     *         in="query",
+     *         description="Page number for pagination",
+     *         required=false,
+     *         @OA\Schema(type="integer"),
+     *         example=1
      *     ),
      *     @OA\Response(
      *         response=200,
      *         description="List of articles",
      *         @OA\JsonContent(
      *             type="object",
-     *             @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/Article"))
+     *             @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/Article")),
+     *             @OA\Property(property="links", type="object"),
+     *             @OA\Property(property="meta", type="object")
      *         )
      *     )
      * )
@@ -69,12 +93,32 @@ class ArticleController extends Controller
             });
         }
 
-        if ($request->category) {
-            $query->where('category', $request->category);
+        if ($request->has('category')) {
+            if ($request->category === 'null' || $request->category === 'undefined') {
+                $query->whereNull('category');
+            } else if ($request->category === '') {
+                $query->where(function($q) {
+                    $q->whereNull('category')->orWhere('category', '');
+                });
+            } else {
+                $query->where('category', $request->category);
+            }
         }
 
-        if ($request->source) {
-            $query->where('source', $request->source);
+        if ($request->has('source')) {
+            if ($request->source === 'null' || $request->source === 'undefined') {
+                $query->whereNull('source');
+            } else {
+                $query->where('source', $request->source);
+            }
+        }
+
+        if ($request->has('author')) {
+            if ($request->author === 'null' || $request->author === 'undefined') {
+                $query->whereNull('author');
+            } else {
+                $query->where('author', $request->author);
+            }
         }
 
         if ($request->date) {
@@ -88,7 +132,7 @@ class ArticleController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/api/articles/{id}",
+     *     path="/api/v1/articles/{id}",
      *     tags={"Articles"},
      *     summary="Get a single article by ID",
      *     @OA\Parameter(

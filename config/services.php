@@ -32,13 +32,13 @@ return [
     ],
 
     'newsapi' => [
-        'key' => env('NEWSAPI_API_KEY'),
+        'key' => env('NEWSAPI_KEY'),
     ],
     'guardian' => [
         'key' => env('GUARDIAN_API_KEY'),
     ],
     'newsdata' => [
-        'key' => env('NEWSDATA_API_KEY'),
+        'key' => env('NEWSDATA_KEY'),
     ],
 
 
