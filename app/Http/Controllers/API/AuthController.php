@@ -45,21 +45,33 @@ class AuthController extends Controller
      */
     public function register(Request $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:8|confirmed',
-        ]);
-
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => bcrypt($request->password),
-        ]);
-
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        return response()->json(['access_token' => $token, 'token_type' => 'Bearer']);
+        try {
+            $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|unique:users,email',
+                'password' => 'required|string|min:8|confirmed',
+            ]);
+    
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => bcrypt($request->password),
+            ]);
+    
+            $token = $user->createToken('auth_token')->plainTextToken;
+    
+            return response()->json(['access_token' => $token, 'token_type' => 'Bearer']);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to register user',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -91,24 +103,36 @@ class AuthController extends Controller
      */
     public function login(Request $request)
     {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
-
-        $user = User::where('email', $request->email)->first();
-
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
+        try {
+            $request->validate([
+                'email' => 'required|email',
+                'password' => 'required',
             ]);
+    
+            $user = User::where('email', $request->email)->first();
+    
+            if (!$user || !Hash::check($request->password, $user->password)) {
+                return response()->json([
+                    'message' => 'The provided credentials are incorrect.'
+                ], 401);
+            }
+    
+            $user->tokens()->delete();
+    
+            $token = $user->createToken('auth_token')->plainTextToken;
+    
+            return response()->json(['access_token' => $token, 'token_type' => 'Bearer']);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to authenticate user',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        $user->tokens()->delete();
-
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        return response()->json(['access_token' => $token, 'token_type' => 'Bearer']);
     }
 
     /**
@@ -141,51 +165,63 @@ class AuthController extends Controller
      */
     public function forgotPassword(Request $request)
     {
-        $request->validate([
-            'email' => 'required|email',
-            'reset_url' => 'nullable|url'
-        ]);
-        
-        // Find the user by email
-        $user = User::where('email', $request->email)->first();
-        
-        if (!$user) {
-            return response()->json([
-                'message' => 'We have sent a password reset token if the email exists in our system.'
-            ], 200); // Don't reveal if email exists for security
-        }
-        
-        // Generate a new reset token
-        $token = Str::random(64);
-        
-        // Delete any existing tokens for this email
-        \DB::table('password_resets')
-            ->where('email', $request->email)
-            ->delete();
+        try {
+            $request->validate([
+                'email' => 'required|email',
+                'reset_url' => 'nullable|url'
+            ]);
             
-        // Store the new token in the password_resets table
-        \DB::table('password_resets')->insert([
-            'email' => $request->email,
-            'token' => Hash::make($token),
-            'created_at' => now()
-        ]);
-        
-        $response = [
-            'message' => 'Password reset token generated successfully',
-            'token' => $token
-        ];
-        
-        // If reset_url is provided, also generate a clickable link
-        if ($request->has('reset_url') && $request->reset_url) {
-            $resetLink = str_replace(
-                ['{token}', '{email}'], 
-                [$token, $request->email], 
-                $request->reset_url
-            );
-            $response['reset_link'] = $resetLink;
+            // Find the user by email
+            $user = User::where('email', $request->email)->first();
+            
+            if (!$user) {
+                return response()->json([
+                    'message' => 'We have sent a password reset token if the email exists in our system.'
+                ], 200); // Don't reveal if email exists for security
+            }
+            
+            // Generate a new reset token
+            $token = Str::random(64);
+            
+            // Delete any existing tokens for this email
+            \DB::table('password_resets')
+                ->where('email', $request->email)
+                ->delete();
+                
+            // Store the new token in the password_resets table
+            \DB::table('password_resets')->insert([
+                'email' => $request->email,
+                'token' => Hash::make($token),
+                'created_at' => now()
+            ]);
+            
+            $response = [
+                'message' => 'Password reset token generated successfully',
+                'token' => $token
+            ];
+            
+            // If reset_url is provided, also generate a clickable link
+            if ($request->has('reset_url') && $request->reset_url) {
+                $resetLink = str_replace(
+                    ['{token}', '{email}'], 
+                    [$token, $request->email], 
+                    $request->reset_url
+                );
+                $response['reset_link'] = $resetLink;
+            }
+            
+            return response()->json($response);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to process password reset request',
+                'error' => $e->getMessage()
+            ], 500);
         }
-        
-        return response()->json($response);
     }
     
     /**
@@ -223,64 +259,76 @@ class AuthController extends Controller
      */
     public function resetPassword(Request $request)
     {
-        $request->validate([
-            'token' => 'required|string',
-            'email' => 'required|email',
-            'password' => 'required|min:8|confirmed',
-        ]);
+        try {
+            $request->validate([
+                'token' => 'required|string',
+                'email' => 'required|email',
+                'password' => 'required|min:8|confirmed',
+            ]);
 
-        // Find the user by email
-        $user = User::where('email', $request->email)->first();
-        
-        if (!$user) {
+            // Find the user by email
+            $user = User::where('email', $request->email)->first();
+            
+            if (!$user) {
+                return response()->json([
+                    'message' => 'Invalid or expired password reset link'
+                ], 400);
+            }
+            
+            // Find the token in the password_resets table
+            $passwordReset = \DB::table('password_resets')
+                ->where('email', $request->email)
+                ->first();
+            
+            if (!$passwordReset) {
+                return response()->json([
+                    'message' => 'Invalid or expired password reset link'
+                ], 400);
+            }
+            
+            // Verify the token
+            if (!Hash::check($request->token, $passwordReset->token)) {
+                return response()->json([
+                    'message' => 'Invalid or expired password reset link'
+                ], 400);
+            }
+            
+            // Check if token is expired (tokens last 60 minutes)
+            $tokenCreatedAt = new \Carbon\Carbon($passwordReset->created_at);
+            if (now()->diffInMinutes($tokenCreatedAt) > 60) {
+                return response()->json([
+                    'message' => 'Password reset link has expired'
+                ], 400);
+            }
+            
+            // Update the user's password
+            $user->password = Hash::make($request->password);
+            $user->setRememberToken(Str::random(60));
+            $user->save();
+            
+            // Delete the used token
+            \DB::table('password_resets')
+                ->where('email', $request->email)
+                ->delete();
+            
+            // Revoke all tokens so user has to login again
+            $user->tokens()->delete();
+            
             return response()->json([
-                'message' => 'Invalid or expired password reset link'
-            ], 400);
-        }
-        
-        // Find the token in the password_resets table
-        $passwordReset = \DB::table('password_resets')
-            ->where('email', $request->email)
-            ->first();
-        
-        if (!$passwordReset) {
+                'message' => 'Your password has been reset successfully',
+                'login_url' => '/login' // Frontend can redirect to this URL
+            ]);
+        } catch (ValidationException $e) {
             return response()->json([
-                'message' => 'Invalid or expired password reset link'
-            ], 400);
-        }
-        
-        // Verify the token
-        if (!Hash::check($request->token, $passwordReset->token)) {
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Invalid or expired password reset link'
-            ], 400);
+                'message' => 'Failed to reset password',
+                'error' => $e->getMessage()
+            ], 500);
         }
-        
-        // Check if token is expired (tokens last 60 minutes)
-        $tokenCreatedAt = new \Carbon\Carbon($passwordReset->created_at);
-        if (now()->diffInMinutes($tokenCreatedAt) > 60) {
-            return response()->json([
-                'message' => 'Password reset link has expired'
-            ], 400);
-        }
-        
-        // Update the user's password
-        $user->password = Hash::make($request->password);
-        $user->setRememberToken(Str::random(60));
-        $user->save();
-        
-        // Delete the used token
-        \DB::table('password_resets')
-            ->where('email', $request->email)
-            ->delete();
-        
-        // Revoke all tokens so user has to login again
-        $user->tokens()->delete();
-        
-        return response()->json([
-            'message' => 'Your password has been reset successfully',
-            'login_url' => '/login' // Frontend can redirect to this URL
-        ]);
     }
 
     /**
@@ -306,11 +354,18 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
-        // Revoke all tokens...
-        $request->user()->tokens()->delete();
+        try {
+            // Revoke all tokens...
+            $request->user()->tokens()->delete();
 
-        return response()->json([
-            'message' => 'User logged out successfully'
-        ]);
+            return response()->json([
+                'message' => 'User logged out successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to logout user',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }

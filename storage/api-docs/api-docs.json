@@ -38,7 +38,7 @@
                     {
                         "name": "category",
                         "in": "query",
-                        "description": "Filter by category",
+                        "description": "Filter by category (use 'null' to find articles with no category)",
                         "required": false,
                         "schema": {
                             "type": "string"
@@ -48,12 +48,22 @@
                     {
                         "name": "source",
                         "in": "query",
-                        "description": "Filter by news source",
+                        "description": "Filter by news source (use 'null' to find articles with no source)",
                         "required": false,
                         "schema": {
                             "type": "string"
                         },
                         "example": "bbc-news"
+                    },
+                    {
+                        "name": "author",
+                        "in": "query",
+                        "description": "Filter by author (use 'null' to find articles with no author)",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "John Doe"
                     },
                     {
                         "name": "date",
@@ -453,9 +463,9 @@
                                                 "type": "string"
                                             },
                                             "example": [
-                                                "CNN",
-                                                "BBC",
-                                                "The New York Times"
+                                                "BBC News",
+                                                "The Guardian",
+                                                "NewsAPI"
                                             ]
                                         },
                                         "categories": {

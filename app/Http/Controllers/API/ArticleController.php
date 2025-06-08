@@ -84,50 +84,57 @@ class ArticleController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Article::query();
+        try {
+            $query = Article::query();
 
-        if ($keyword = $request->keyword) {
-            $query->where(function ($q) use ($keyword) {
-                $q->where('title', 'like', "%$keyword%")
-                  ->orWhere('description', 'like', "%$keyword%");
-            });
-        }
-
-        if ($request->has('category')) {
-            if ($request->category === 'null' || $request->category === 'undefined') {
-                $query->whereNull('category');
-            } else if ($request->category === '') {
-                $query->where(function($q) {
-                    $q->whereNull('category')->orWhere('category', '');
+            if ($keyword = $request->keyword) {
+                $query->where(function ($q) use ($keyword) {
+                    $q->where('title', 'like', "%$keyword%")
+                      ->orWhere('description', 'like', "%$keyword%");
                 });
-            } else {
-                $query->where('category', $request->category);
             }
-        }
 
-        if ($request->has('source')) {
-            if ($request->source === 'null' || $request->source === 'undefined') {
-                $query->whereNull('source');
-            } else {
-                $query->where('source', $request->source);
+            if ($request->has('category')) {
+                if ($request->category === 'null' || $request->category === 'undefined') {
+                    $query->whereNull('category');
+                } else if ($request->category === '') {
+                    $query->where(function($q) {
+                        $q->whereNull('category')->orWhere('category', '');
+                    });
+                } else {
+                    $query->where('category', $request->category);
+                }
             }
-        }
 
-        if ($request->has('author')) {
-            if ($request->author === 'null' || $request->author === 'undefined') {
-                $query->whereNull('author');
-            } else {
-                $query->where('author', $request->author);
+            if ($request->has('source')) {
+                if ($request->source === 'null' || $request->source === 'undefined') {
+                    $query->whereNull('source');
+                } else {
+                    $query->where('source', $request->source);
+                }
             }
-        }
 
-        if ($request->date) {
-            $query->whereDate('published_at', $request->date);
-        }
+            if ($request->has('author')) {
+                if ($request->author === 'null' || $request->author === 'undefined') {
+                    $query->whereNull('author');
+                } else {
+                    $query->where('author', $request->author);
+                }
+            }
 
-        return ArticleResource::collection(
-            $query->orderBy('published_at', 'desc')->paginate(10)
-        );
+            if ($request->date) {
+                $query->whereDate('published_at', $request->date);
+            }
+
+            return ArticleResource::collection(
+                $query->orderBy('published_at', 'desc')->paginate(10)
+            );
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to retrieve articles',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -155,7 +162,21 @@ class ArticleController extends Controller
      */
     public function show($id)
     {
-        $article = Article::findOrFail($id);
-        return new ArticleResource($article);
+        try {
+            $article = Article::find($id);
+            
+            if (!$article) {
+                return response()->json([
+                    'message' => 'Article not found'
+                ], 404);
+            }
+            
+            return new ArticleResource($article);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to retrieve article',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }

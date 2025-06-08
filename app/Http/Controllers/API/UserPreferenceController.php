@@ -59,24 +59,31 @@ class UserPreferenceController extends Controller
      */
     public function index(Request $request)
     {
-        $user = $request->user();
-        $preferences = $user->preferences;
-        
-        if (!$preferences) {
-            // Create default preferences if not found
-            $preferences = new UserPreference([
-                'sources' => [],
-                'categories' => [],
-                'authors' => []
+        try {
+            $user = $request->user();
+            $preferences = $user->preferences;
+            
+            if (!$preferences) {
+                // Create default preferences if not found
+                $preferences = new UserPreference([
+                    'sources' => [],
+                    'categories' => [],
+                    'authors' => []
+                ]);
+                $user->preferences()->save($preferences);
+            }
+            
+            return response()->json([
+                'sources' => $preferences->sources ?? [],
+                'categories' => $preferences->categories ?? [],
+                'authors' => $preferences->authors ?? []
             ]);
-            $user->preferences()->save($preferences);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to retrieve user preferences',
+                'error' => $e->getMessage()
+            ], 500);
         }
-        
-        return response()->json([
-            'sources' => $preferences->sources ?? [],
-            'categories' => $preferences->categories ?? [],
-            'authors' => $preferences->authors ?? []
-        ]);
     }
     
     /**
@@ -157,46 +164,58 @@ class UserPreferenceController extends Controller
      */
     public function update(Request $request)
     {
-        $validated = $request->validate([
-            'sources' => 'nullable|array',
-            'sources.*' => 'string',
-            'categories' => 'nullable|array',
-            'categories.*' => 'string',
-            'authors' => 'nullable|array',
-            'authors.*' => 'string',
-        ]);
-        
-        $user = $request->user();
-        $preferences = $user->preferences;
-        
-        if (!$preferences) {
-            $preferences = new UserPreference();
-            $user->preferences()->save($preferences);
+        try {
+            $validated = $request->validate([
+                'sources' => 'nullable|array',
+                'sources.*' => 'string',
+                'categories' => 'nullable|array',
+                'categories.*' => 'string',
+                'authors' => 'nullable|array',
+                'authors.*' => 'string',
+            ]);
+            
+            $user = $request->user();
+            $preferences = $user->preferences;
+            
+            if (!$preferences) {
+                $preferences = new UserPreference();
+                $user->preferences()->save($preferences);
+            }
+            
+            // Update only the fields that are provided in the request
+            if ($request->has('sources')) {
+                $preferences->sources = $validated['sources'];
+            }
+            
+            if ($request->has('categories')) {
+                $preferences->categories = $validated['categories'];
+            }
+            
+            if ($request->has('authors')) {
+                $preferences->authors = $validated['authors'];
+            }
+            
+            $preferences->save();
+            
+            return response()->json([
+                'message' => 'Preferences updated successfully',
+                'preferences' => [
+                    'sources' => $preferences->sources,
+                    'categories' => $preferences->categories,
+                    'authors' => $preferences->authors,
+                ]
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to update preferences',
+                'error' => $e->getMessage()
+            ], 500);
         }
-        
-        // Update only the fields that are provided in the request
-        if ($request->has('sources')) {
-            $preferences->sources = $validated['sources'];
-        }
-        
-        if ($request->has('categories')) {
-            $preferences->categories = $validated['categories'];
-        }
-        
-        if ($request->has('authors')) {
-            $preferences->authors = $validated['authors'];
-        }
-        
-        $preferences->save();
-        
-        return response()->json([
-            'message' => 'Preferences updated successfully',
-            'preferences' => [
-                'sources' => $preferences->sources,
-                'categories' => $preferences->categories,
-                'authors' => $preferences->authors,
-            ]
-        ]);
     }
     
     /**
@@ -222,29 +241,36 @@ class UserPreferenceController extends Controller
      */
     public function reset(Request $request)
     {
-        $user = $request->user();
-        $preferences = $user->preferences;
-        
-        if ($preferences) {
-            // Reset to empty arrays
-            $preferences->update([
-                'sources' => [],
-                'categories' => [],
-                'authors' => []
+        try {
+            $user = $request->user();
+            $preferences = $user->preferences;
+            
+            if ($preferences) {
+                // Reset to empty arrays
+                $preferences->update([
+                    'sources' => [],
+                    'categories' => [],
+                    'authors' => []
+                ]);
+            } else {
+                // Create new preferences with empty arrays if not exists
+                $preferences = new UserPreference([
+                    'sources' => [],
+                    'categories' => [],
+                    'authors' => []
+                ]);
+                $user->preferences()->save($preferences);
+            }
+            
+            return response()->json([
+                'message' => 'Preferences reset successfully'
             ]);
-        } else {
-            // Create new preferences with empty arrays if not exists
-            $preferences = new UserPreference([
-                'sources' => [],
-                'categories' => [],
-                'authors' => []
-            ]);
-            $user->preferences()->save($preferences);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to reset preferences',
+                'error' => $e->getMessage()
+            ], 500);
         }
-        
-        return response()->json([
-            'message' => 'Preferences reset successfully'
-        ]);
     }
     
     /**
@@ -300,60 +326,67 @@ class UserPreferenceController extends Controller
      */
     public function feed(Request $request)
     {
-        $user = $request->user();
-        $preferences = $user->preferences;
-        $page = $request->query('page', 1);
-        $perPage = $request->query('per_page', 15);
-        
-        // Start with a base query
-        $query = Article::query();
-        
-        // Apply filters based on user preferences if they exist
-        if ($preferences) {
-            // Filter by sources if defined
-            if (!empty($preferences->sources)) {
-                $query->where(function (Builder $query) use ($preferences) {
-                    foreach ($preferences->sources as $source) {
-                        $query->orWhere('source', 'like', "%{$source}%");
-                    }
-                });
+        try {
+            $user = $request->user();
+            $preferences = $user->preferences;
+            $page = $request->query('page', 1);
+            $perPage = $request->query('per_page', 15);
+            
+            // Start with a base query
+            $query = Article::query();
+            
+            // Apply filters based on user preferences if they exist
+            if ($preferences) {
+                // Filter by sources if defined
+                if (!empty($preferences->sources)) {
+                    $query->where(function (Builder $query) use ($preferences) {
+                        foreach ($preferences->sources as $source) {
+                            $query->orWhere('source', 'like', "%{$source}%");
+                        }
+                    });
+                }
+                
+                // Filter by categories if defined
+                if (!empty($preferences->categories)) {
+                    $query->where(function (Builder $query) use ($preferences) {
+                        foreach ($preferences->categories as $category) {
+                            $query->orWhere('category', 'like', "%{$category}%");
+                        }
+                    });
+                }
+                
+                // Filter by authors if defined
+                if (!empty($preferences->authors)) {
+                    $query->where(function (Builder $query) use ($preferences) {
+                        foreach ($preferences->authors as $author) {
+                            $query->orWhere('author', 'like', "%{$author}%");
+                        }
+                    });
+                }
             }
             
-            // Filter by categories if defined
-            if (!empty($preferences->categories)) {
-                $query->where(function (Builder $query) use ($preferences) {
-                    foreach ($preferences->categories as $category) {
-                        $query->orWhere('category', 'like', "%{$category}%");
-                    }
-                });
-            }
+            // Order by most recent articles first
+            $query->orderBy('published_at', 'desc');
             
-            // Filter by authors if defined
-            if (!empty($preferences->authors)) {
-                $query->where(function (Builder $query) use ($preferences) {
-                    foreach ($preferences->authors as $author) {
-                        $query->orWhere('author', 'like', "%{$author}%");
-                    }
-                });
-            }
+            // Paginate the results
+            $articles = $query->paginate($perPage, ['*'], 'page', $page);
+            
+            return response()->json([
+                'articles' => $articles->items(),
+                'pagination' => [
+                    'total' => $articles->total(),
+                    'per_page' => $articles->perPage(),
+                    'current_page' => $articles->currentPage(),
+                    'last_page' => $articles->lastPage(),
+                    'from' => $articles->firstItem(),
+                    'to' => $articles->lastItem(),
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to retrieve personalized feed',
+                'error' => $e->getMessage()
+            ], 500);
         }
-        
-        // Order by most recent articles first
-        $query->orderBy('published_at', 'desc');
-        
-        // Paginate the results
-        $articles = $query->paginate($perPage, ['*'], 'page', $page);
-        
-        return response()->json([
-            'articles' => $articles->items(),
-            'pagination' => [
-                'total' => $articles->total(),
-                'per_page' => $articles->perPage(),
-                'current_page' => $articles->currentPage(),
-                'last_page' => $articles->lastPage(),
-                'from' => $articles->firstItem(),
-                'to' => $articles->lastItem(),
-            ]
-        ]);
     }
 }
