@@ -43,8 +43,9 @@ class User extends Authenticatable
     ];
 
 
-    public function sendPasswordResetNotification($url)
+    public function preferences()
     {
-        $this->notify(new ResetPasswordNotification($url));
+        return $this->hasOne(UserPreference::class);
     }
+
 }
