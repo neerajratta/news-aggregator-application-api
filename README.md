@@ -62,10 +62,10 @@ A Laravel-based RESTful API that aggregates news from multiple external sources 
    docker-compose exec app php artisan key:generate
    docker-compose exec app php artisan migrate
    ```
-
-6. Generate Swagger documentation:
+   Note: `composer install` and Swagger generation are already handled in the Dockerfile,
+   but if you've modified dependencies after building the container, you may need to run:
    ```bash
-   docker-compose exec app php artisan l5-swagger:generate
+   docker-compose exec app composer install
    ```
 
 ## Usage
