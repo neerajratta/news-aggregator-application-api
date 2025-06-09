@@ -37,15 +37,21 @@ RUN useradd -u 1000 -ms /bin/bash -g www www
 # Copy existing application directory contents
 COPY . /var/www
 
+#Create Vendor Directory
+RUN mkdir -p /var/www/vendor && chown -R www:www /var/www
+
 # Copy existing application directory permissions
 COPY --chown=www:www . /var/www
-
-# Change current user to www
-USER www
 
 # Install dependencies and optimize the application
 WORKDIR /var/www
 RUN composer install --no-interaction --optimize-autoloader --no-dev
+
+#set proper permissions
+RUN chown -R www:www /var/www
+
+# Change user to www
+USER www
 
 # Generate Laravel cache files for better performance
 RUN php artisan config:cache

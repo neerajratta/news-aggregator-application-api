@@ -89,7 +89,7 @@ class AuthControllerTest extends TestCase
             'password' => 'wrong_password',
         ]);
 
-        $response->assertStatus(422)
+        $response->assertStatus(401)
             ->assertJson([
                 'message' => 'The provided credentials are incorrect.',
             ]);

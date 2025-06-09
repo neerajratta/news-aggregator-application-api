@@ -51,8 +51,8 @@ Route::middleware(['auth:sanctum', 'throttle:api.user'])->group(function () {
     // User preferences routes
     Route::prefix('v1/user/preferences')->controller(UserPreferenceController::class)->group(function () {
         Route::get('/', 'index');  // Get user preferences
-        Route::put('/', 'update'); // Update user preferences
-        Route::delete('/', 'reset'); // Reset user preferences (DELETE method)
+        Route::put('/update', 'update'); // Update user preferences
+        Route::delete('/reset', 'reset'); // Reset user preferences (DELETE method)
         Route::post('/reset', 'reset'); // Reset user preferences (POST method to match Swagger)
     });
     

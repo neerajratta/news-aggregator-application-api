@@ -23,13 +23,18 @@ services:
   webserver:
     image: nginx:alpine
     container_name: news-aggregator-webserver
-    restart: unless-stopped
+    restart: on-failure:5
     tty: true
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     ports:
       - "8000:80"
     volumes:
-      - ./:/var/www
-      - ./docker/nginx/conf.d/:/etc/nginx/conf.d/
+      - ./:/var/www:cached
+      - ./docker/nginx/conf.d/:/etc/nginx/conf.d/:ro
     networks:
       - app-network
 
@@ -37,17 +42,23 @@ services:
   db:
     image: mysql:8.0
     container_name: news-aggregator-db
-    restart: unless-stopped
+    restart: on-failure:5
+    stop_grace_period: 2m
     tty: true
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
     ports:
       - "3306:3306"
     environment:
-      MYSQL_DATABASE: news_aggregator
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_PASSWORD: root
-      MYSQL_USER: root
-      SERVICE_TAGS: dev
-      SERVICE_NAME: mysql
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_USER: ${MYSQL_USER}
+      SERVICE_TAGS: ${SERVICE_TAGS}
+      SERVICE_NAME: ${SERVICE_NAME}
     volumes:
       - dbdata:/var/lib/mysql/
       - ./docker/mysql/my.cnf:/etc/mysql/my.cnf

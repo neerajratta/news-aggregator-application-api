@@ -333,7 +333,7 @@ class AuthController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/api/v1/logout",
+     *     path="/api/logout",
      *     summary="Logout a user",
      *     tags={"Authentication"},
      *     security={
