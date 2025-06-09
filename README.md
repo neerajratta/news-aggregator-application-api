@@ -36,7 +36,7 @@ A Laravel-based RESTful API that aggregates news from multiple external sources 
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/news-aggregator-application-api.git
+   git clone https://github.com/neerajratta/news-aggregator-application-api.git
    cd news-aggregator-application-api
    ```
 
@@ -73,9 +73,11 @@ A Laravel-based RESTful API that aggregates news from multiple external sources 
 ### API Endpoints
 
 - **Authentication**
-  - `POST /api/register` - Register a new user
-  - `POST /api/login` - Login and get access token
-  - `POST /api/logout` - Logout and invalidate token
+  - `POST /api/v1/user/register` - Register a new user
+  - `POST /api/v1/user/login` - Login and get access token
+  - `POST /api/v1/user/forgot-password` - Send password reset link
+  - `POST /api/v1/user/reset-password` - Reset password using token
+  - `POST /api/logout` - Logout and invalidate token (requires authentication)
 
 - **Articles**
   - `GET /api/v1/articles` - Get all articles (with pagination and filters)
@@ -83,9 +85,9 @@ A Laravel-based RESTful API that aggregates news from multiple external sources 
 
 - **User Preferences**
   - `GET /api/v1/user/preferences` - Get user preferences
-  - `POST /api/v1/user/preferences` - Update user preferences
+  - `PUT /api/v1/user/preferences/update` - Update user preferences
   - `POST /api/v1/user/preferences/reset` - Reset user preferences
-  - `DELETE /api/v1/user/preferences` - Alternative reset preferences
+  - `DELETE /api/v1/user/preferences/reset` - Alternative reset preferences
 
 - **Personalized Feed**
   - `GET /api/v1/user/feed` - Get personalized feed based on preferences
