@@ -78,7 +78,7 @@ class UserPreferenceControllerTest extends TestCase
     {
         $response = $this->withHeaders([
             'Authorization' => 'Bearer ' . $this->token,
-        ])->putJson('/api/v1/user/preferences', [
+        ])->putJson('/api/v1/user/preferences/update', [
             'sources' => ['BBC News', 'The Guardian'],
             'categories' => ['Politics', 'Technology'],
             'authors' => ['John Doe', 'Jane Smith'],
@@ -146,7 +146,7 @@ class UserPreferenceControllerTest extends TestCase
         // Reset preferences using DELETE method
         $response = $this->withHeaders([
             'Authorization' => 'Bearer ' . $this->token,
-        ])->deleteJson('/api/v1/user/preferences');
+        ])->deleteJson('/api/v1/user/preferences/reset');
         
         $response->assertStatus(200)
             ->assertJson([

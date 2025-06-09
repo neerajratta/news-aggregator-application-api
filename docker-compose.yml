@@ -1,4 +1,4 @@
-version: '3'
+
 services:
   # PHP Application
   app:
@@ -53,12 +53,12 @@ services:
     ports:
       - "3306:3306"
     environment:
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-      MYSQL_USER: ${MYSQL_USER}
-      SERVICE_TAGS: ${SERVICE_TAGS}
-      SERVICE_NAME: ${SERVICE_NAME}
+      MYSQL_DATABASE: news_aggregator
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_PASSWORD: root
+      MYSQL_USER: root
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
     volumes:
       - dbdata:/var/lib/mysql/
       - ./docker/mysql/my.cnf:/etc/mysql/my.cnf

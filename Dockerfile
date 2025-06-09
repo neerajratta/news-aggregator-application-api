@@ -55,6 +55,7 @@ USER www
 
 # Generate Laravel cache files for better performance
 RUN php artisan config:cache
+RUN php artisan cache:clear
 RUN php artisan route:cache
 RUN php artisan view:cache
 
